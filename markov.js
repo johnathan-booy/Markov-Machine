@@ -28,18 +28,14 @@ class MarkovMachine {
 	/** return random text from chains */
 
 	makeText(numWords = 100) {
-		let text = "";
+		const out = [];
 		const allKeys = Array.from(this.chains.keys());
 		let key = getRandomElement(allKeys);
-		let options = this.chains.get(key);
-		while (!options.includes(null)) {
-			const word = getRandomElement(options);
-			text += word;
-			text += " ";
-			key = word;
-			options = this.chains.get(key);
+		while (key !== null && out.length < numWords) {
+			out.push(key);
+			key = getRandomElement(this.chains.get(key));
 		}
-		return text;
+		return out.join(" ");
 	}
 }
 
