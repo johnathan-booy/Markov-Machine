@@ -4,6 +4,7 @@ const fs = require("fs");
 const { argv } = require("process");
 const { MarkovMachine } = require("./markov");
 const axios = require("axios");
+const { stripHtml } = require("string-strip-html");
 
 const type = argv[2];
 const path = argv[3];
@@ -35,7 +36,8 @@ function readLocalFile(path) {
 async function readWebFile(url) {
 	try {
 		const res = await axios.get(url);
-		const machine = new MarkovMachine(res.data);
+		const text = stripHtml(res.data).result;
+		const machine = new MarkovMachine(text);
 		console.log(machine.makeText());
 	} catch (error) {
 		console.log(`Error fetching "${url}`, error);
