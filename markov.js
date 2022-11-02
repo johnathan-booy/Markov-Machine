@@ -7,27 +7,30 @@ class MarkovMachine {
 	/** build markov machine; read in text.*/
 
 	constructor(text) {
-		// Get keys that start lines
-		this.startKeys = this.getStartKeys(text);
-
 		// Get all words
 		this.words = this.splitWords(text);
 
 		// Analyze Markov Chains
 		this.chains = this.makeChains();
+
+		// Get keys that start lines
+		this.startKeys = this.getStartKeys();
 	}
 
-	getStartKeys(text) {
-		const startKeys = new Set();
-		let lines = this.splitLines(text);
-		for (const line of lines) {
-			const words = this.splitWords(text);
-			if (words.length > 1) {
-				const key = this.makeKey(words[0], words[1]);
-				startKeys.add(key);
+	getStartKeys() {
+		const firstKey = this.makeKey(this.words[0], this.words[1]);
+		const startKeys = [firstKey];
+
+		// Also include words that follow punctuation
+		for (let i = 0; i < this.words.length - 2; i++) {
+			const word = this.words[i];
+			const nextKey = this.makeKey(this.words[i + 1], this.words[i + 2]);
+			const marks = "?!.";
+			for (let mark of marks) {
+				if (word.includes(mark)) startKeys.push(nextKey);
 			}
 		}
-		return Array.from(startKeys);
+		return startKeys;
 	}
 
 	splitWords(text) {
@@ -35,7 +38,7 @@ class MarkovMachine {
 	}
 
 	splitLines(text) {
-		return text.split("\n").filter((line) => line !== "");
+		return text.split(/\r?\n/).filter((line) => line !== "");
 	}
 
 	makeKey(w1, w2) {
@@ -58,23 +61,30 @@ class MarkovMachine {
 		return chains;
 	}
 
-	/** return random text from chains */
-
-	makeText(numWords = 100) {
+	makeText(numWords = 100, endAtPunctuation = true) {
 		const allKeys = Array.from(this.chains.keys());
 		let key = getRandomElement(this.startKeys);
 		const out = [];
 		while (key !== null && out.length < numWords) {
-			let [w1, w2] = key.split(" ");
+			const [w1, w2] = key.split(" ");
+			const w3 = getRandomElement(this.chains.get(key));
+			key = w3 !== null ? this.makeKey(w2, w3) : null;
 			out.push(w1);
-			key = this.makeKey(w2, getRandomElement(this.chains.get(key)));
 		}
 		let text = out.join(" ");
-		return this.endAtPeriod(text);
+		if ((endAtPunctuation = true)) return this.endAtPunctuation(text);
+		return text;
 	}
 
-	endAtPeriod(str) {
-		return str.slice(0, str.lastIndexOf(".") + 1);
+	endAtPunctuation(str) {
+		if (str.includes(".")) {
+			return str.slice(0, str.lastIndexOf(".") + 1);
+		} else if (str.includes("!")) {
+			return str.slice(0, str.lastIndexOf("!") + 1);
+		} else if (str.includes("?")) {
+			return str.slice(0, str.lastIndexOf("?") + 1);
+		}
+		return str;
 	}
 }
 
