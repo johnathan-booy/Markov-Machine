@@ -1,4 +1,3 @@
-const { inspectObject } = require("./inspectObject");
 const { getRandomElement } = require("./helpers");
 
 /** Textual markov chain generator */
